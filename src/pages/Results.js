@@ -117,7 +117,7 @@ function EnhancementPanel({ enhancement, originalImage }) {
   const [showPremium, setShowPremium] = useState(true);
   const src = `data:image/png;base64,${image_b64}`;
   const multiSrc = (key) => multi?.[key] ? `data:image/png;base64,${multi[key]}` : null;
-  const finalSrc = multiSrc('final_enhanced_b64');
+
   // premium chain helpers
   const pcSrc = (key) => pc?.[key] ? `data:image/png;base64,${pc[key]}` : null;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Telescope, Cpu, Globe, ArrowUpRight } from 'lucide-react';
+import { Telescope, Cpu, Globe } from 'lucide-react';
 import { FadeUp, PageTransition } from '../components/Animations';
 
 export default function About() {
