@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 60" width="180" height="60">
+  <!-- Rocket / Feather Icon -->
+  <g transform="translate(6, 8)">
+    <!-- Rocket body -->
+    <ellipse cx="16" cy="22" rx="5" ry="13" fill="#38bdf8" opacity="0.95"/>
+    <!-- Rocket nosecone -->
+    <polygon points="16,4 11,16 21,16" fill="#38bdf8"/>
+    <!-- Left fin -->
+    <polygon points="11,28 6,36 14,32" fill="#38bdf8" opacity="0.8"/>
+    <!-- Right fin -->
+    <polygon points="21,28 26,36 18,32" fill="#38bdf8" opacity="0.8"/>
+    <!-- Flame/exhaust glow -->
+    <ellipse cx="16" cy="38" rx="3.5" ry="5" fill="#7dd3fc" opacity="0.5"/>
+  </g>
+  <!-- Brand Text -->
+  <text
+    x="46" y="38"
+    font-family="Orbitron, 'Arial Black', sans-serif"
+    font-size="26"
+    font-weight="700"
+    letter-spacing="3"
+    fill="#38bdf8"
+  >IARRD</text>
+</svg>
