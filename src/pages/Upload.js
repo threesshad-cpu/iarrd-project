@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition, FadeUp } from '../components/Animations';
 import { setLastResult } from '../ResultsStore';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://threessha-iarrd-backend.hf.space';
 
 /* ═══════════════════════════════════════════════ */
 /*  BROWSER-SIDE PROCESSING (fallback)             */
