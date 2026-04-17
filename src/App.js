@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import './App.css';
 
 // 3D Scene (already suspended at mount)
 import { Scene } from './3d/Scene';
@@ -20,7 +21,7 @@ const Pipeline = lazy(() => import('./pages/Pipeline'));
 const Team     = lazy(() => import('./pages/Team'));
 const Contact  = lazy(() => import('./pages/Contact'));
 
-import './App.css';
+
 
 // Minimal fallback — matches app chrome, no layout shift
 function PageLoadingFallback() {

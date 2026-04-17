@@ -118,12 +118,10 @@ function EnhancementPanel({ enhancement, originalImage }) {
   const { image_b64, meta, premium_chain: pc } = enhancement;
   const [zoom, setZoom] = useState(false);
   const [zoomSrc, setZoomSrc] = useState(null);
-  const [zoomLabel, setZoomLabel] = useState('');
   // detect JPEG vs PNG from backend
   const mimeType = image_b64?.startsWith('/9j/') ? 'image/jpeg' : 'image/jpeg';
   const src = `data:${mimeType};base64,${image_b64}`;
 
-  const pcFinalSrc = pc?.enhanced_b64 ? `data:image/png;base64,${pc.enhanced_b64}` : null;
 
   const download = () => {
     const a = document.createElement('a');
@@ -298,7 +296,7 @@ function ClassificationPanel({ classification, minConf = 0 }) {
 function AnomalyPanel({ reconstruction, originalImage }) {
   const {
     anomaly_score, quality, image_b64,
-    noise_reduction_pct, gaussian_preview_b64,
+    gaussian_preview_b64,
   } = reconstruction;
   const [zoomSrc, setZoomSrc] = useState(null);
   const [zoomLabel, setZoomLabel] = useState('');
@@ -729,7 +727,7 @@ function LabeledOutputPanel({ labeledOutput, classification }) {
 /*  EXPERT VERIFICATION PANEL  (was "Stage 09 Second Opinion")     */
 /* ═══════════════════════════════════════════════════════════════ */
 function SecondOpinionPanel({ secondOpinion }) {
-  const { cnn_label, cnn_confidence, gemini, catalog_xref } = secondOpinion;
+  const { cnn_confidence, gemini, catalog_xref } = secondOpinion;
   const geminiOk = gemini?.status === 'ok';
 
   return (
