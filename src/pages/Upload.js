@@ -101,12 +101,12 @@ function detectObjects(gray, width, height, kThreshold) {
 /*  AI PIPELINE STEPS for visual feedback          */
 /* ═══════════════════════════════════════════════ */
 const AI_STEPS = [
-  'Image Acquisition',
-  'Gaussian Preprocessing',
-  'Image Enhancement',
-  'Feature Extraction',
-  'CNN Classification',
-  'Object Detection Complete',
+  'Preparing your image…',
+  'Optimizing image quality…',
+  'Enhancing clarity…',
+  'Identifying features…',
+  'Analyzing objects…',
+  'Finalizing results…',
 ];
 
 /* ═══════════════════════════════════════════════ */
@@ -276,24 +276,24 @@ export default function Upload() {
     setStepIndex(0);
 
     try {
-      advanceStep(0, 'Connecting to neural core …');
+      advanceStep(0, 'Connecting to analysis engine…');
       const formData = new FormData();
       formData.append('file', fileRef.current);
 
-      advanceStep(1, 'Sending image tensor …');
+      advanceStep(1, 'Optimizing image quality…');
       await new Promise(r => setTimeout(r, 200));
 
-      advanceStep(2, 'Running CNN classification …');
+      advanceStep(2, 'Analyzing your image…');
       let res;
       try {
         res = await fetch(`${API_BASE}/api/analyze`, { method: 'POST', body: formData });
       } catch (netErr) {
         throw Object.assign(new Error(
-          'Connection Error — Backend not reachable on port 8000. Start the server and retry, or switch to Browser mode.'
+          'Something went wrong. Please check your connection and try again.'
         ), { kind: 'connection' });
       }
 
-      advanceStep(3, 'Autoencoder reconstruction …');
+      advanceStep(3, 'Mapping object regions…');
       await new Promise(r => setTimeout(r, 100));
 
       if (!res.ok) {
@@ -301,18 +301,18 @@ export default function Upload() {
         const detail = errData.detail || '';
         if (res.status === 422 || detail.toLowerCase().includes('image') || detail.toLowerCase().includes('format')) {
           throw Object.assign(new Error(
-            `Format Error (${res.status}) — The uploaded file is not a valid astronomical image. Use PNG, JPG, TIFF or WEBP.`
+            'This file format is not supported. Please upload a PNG, JPG, TIFF or WEBP image.'
           ), { kind: 'format' });
         }
         throw Object.assign(new Error(
-          `Model Error (${res.status}) — ${detail || 'Server-side inference failed. Check backend logs.'}`
+          'Something went wrong. Please try again.'
         ), { kind: 'model' });
       }
 
-      advanceStep(4, 'U-Net segmentation …');
+      advanceStep(4, 'Building segmentation map…');
       const data = await res.json();
 
-      advanceStep(5, 'Preparing telemetry …');
+      advanceStep(5, 'Preparing your results…');
       await new Promise(r => setTimeout(r, 200));
 
       const canvas = canvasRef.current;
@@ -387,8 +387,7 @@ export default function Upload() {
 
       navigate('/results');
     } catch (e) {
-      const icon = e.kind === 'connection' ? '📡' : e.kind === 'format' ? '🖼' : '⚙️';
-      setError(`${icon} ${e.message}`);
+      setError('Something went wrong. Please try again.');
     } finally {
       setProcessing(false);
       setStatusMsg('');
@@ -639,8 +638,7 @@ export default function Upload() {
                             <div className="ctrl-note" style={{ marginTop: 0 }}>
                               <Info size={14} style={{ flexShrink: 0, color: 'var(--sky)', marginTop: 2 }} />
                               <span>
-                                Backend must be running on port 8000.{' '}
-                                <code style={{ color: 'var(--sky)', fontSize: '0.7rem' }}>uvicorn main:app</code>
+                                Connect to a running analysis server to use AI mode.
                               </span>
                             </div>
 
