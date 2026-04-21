@@ -715,7 +715,8 @@ def stage_03_ai_super_resolution(raw_bytes: bytes, native_w: int, native_h: int)
             k = np.exp(-(xx**2 + yy**2) / (2 * sigma_val**2))
             return (k / k.sum()).astype(np.float32)
 
-        def _rl_deconv(ch_uint8, psf_k, n_iters=12):
+        def _rl_deconv(ch_uint8, psf_k, n_iters=7):
+            # 7 iters: enough to recover blur, few enough to avoid ringing
             d = ch_uint8.astype(np.float32) / 255.0 + 1e-7
             u = d.copy()
             psf_mir = psf_k[::-1, ::-1]
@@ -729,6 +730,8 @@ def stage_03_ai_super_resolution(raw_bytes: bytes, native_w: int, native_h: int)
         psf_k = _make_psf(sigma_val=1.3, size=11)
         arr_rl = np.stack([_rl_deconv(arr_c[:, :, c], psf_k) for c in range(3)], axis=2)
         arr_c  = np.clip(arr_rl, 0, 255).astype(np.uint8)
+        # Post-RL: very light blur suppresses Gibbs ringing at high-contrast edges
+        arr_c = cv2.GaussianBlur(arr_c, (3, 3), sigmaX=0.5)
 
         # Step 5: Pre-upscale LAB CLAHE (contrast before upscale)
         lab_pre = cv2.cvtColor(arr_c, cv2.COLOR_RGB2LAB)
@@ -746,17 +749,16 @@ def stage_03_ai_super_resolution(raw_bytes: bytes, native_w: int, native_h: int)
         # Step 6b: Drizzle second 2x upscale to full 8K
         final_image = cv2.resize(stage1, (out_w, out_h), interpolation=cv2.INTER_LANCZOS4)
 
-        # Step 7: Multi-scale USM at 8K (3 radii for maximum sharpness)
+        # Step 7: Multi-scale USM at 8K
+        # NOTE: Coarse USM (sigma=8) REMOVED — creates circular halo on moon/planet
+        #       against dark space background (very high-contrast boundary).
         f32 = final_image.astype(np.float32)
-        # 7a: Coarse — large-scale luminosity structure (limb darkening, cloud bands)
-        bc = cv2.GaussianBlur(f32, (0, 0), sigmaX=8.0)
-        f32 = np.clip(f32 + 0.28 * (f32 - bc), 0, 255)
         # 7b: Medium — craters, mountains, nebula filaments, star cores
         bm = cv2.GaussianBlur(f32, (0, 0), sigmaX=1.8)
-        f32 = np.clip(f32 + 1.05 * (f32 - bm), 0, 255)
+        f32 = np.clip(f32 + 1.10 * (f32 - bm), 0, 255)
         # 7c: Fine — pixel-level microdetail and diffraction spikes
-        bf = cv2.GaussianBlur(f32, (0, 0), sigmaX=0.4)
-        f32 = np.clip(f32 + 0.55 * (f32 - bf), 0, 255)
+        bf = cv2.GaussianBlur(f32, (0, 0), sigmaX=0.45)
+        f32 = np.clip(f32 + 0.60 * (f32 - bf), 0, 255)
         final_image = f32.astype(np.uint8)
 
         # Step 8: LAB CLAHE at full 8K (local contrast boost)
@@ -1087,26 +1089,26 @@ def _heuristic_classify(arr: np.ndarray) -> dict:
     is_large_disk = (circularity > 0.60 and rel_area > 0.15)
 
     # ── BRANCH 1: Single large circular disk ──────────────────────────────────
-    #   Moon:   disk fills frame, gray/white (sat < 0.12), cratered texture
-    #   Planet: disk fills frame, colored (sat >= 0.12) OR smooth texture
+    #   Discriminator: color_variance (NOT sat_mean)
+    #   Moon:   R≈G≈B (truly gray/white) → color_variance < 0.035
+    #   Planet: R≠G≠B (Mars red, Jupiter striped) → color_variance >= 0.035
+    #   sat_mean AVOIDED: processed moon images get warm tint → sat falsely high
     if is_large_disk:
-        if sat_mean < 0.12:          # Gray → Moon
+        if color_variance < 0.035:   # Gray/white neutral  → Moon
             pred_label = "Moon"
             pred_conf  = min(0.97, 0.88 + circularity * 0.08 + rel_area * 0.05)
-        else:                         # Colored → Planet
+        else:                         # Colored disk        → Planet
             pred_label = "Planet"
-            pred_conf  = min(0.95, 0.80 + sat_mean * 0.15 + circularity * 0.05)
+            pred_conf  = min(0.95, 0.80 + color_variance * 2.0 + circularity * 0.05)
 
-    # ── BRANCH 2: Circular disk (smaller / partial threshold) ─────────────────
-    #   Still clearly a filled disk; is_large_disk requires rel_area > 0.15,
-    #   this catches disks that Otsu clips a bit (rel_area 0.08-0.15)
+    # ── BRANCH 2: Circular disk (smaller, rel_area 0.08–0.15) ─────────────────
     elif circularity > 0.55 and rel_area > 0.08:
-        if sat_mean < 0.14:
+        if color_variance < 0.040:   # Gray  → Moon
             pred_label = "Moon"
             pred_conf  = min(0.90, 0.78 + circularity * 0.10)
-        else:
+        else:                         # Color → Planet
             pred_label = "Planet"
-            pred_conf  = min(0.88, 0.72 + sat_mean * 0.12)
+            pred_conf  = min(0.88, 0.72 + color_variance * 1.5)
 
     # ── BRANCH 3: Elongated streak (Comet / Asteroid) ─────────────────────────
     elif eccentricity > 0.72 and peak_mean_ratio > 2.5 and fill_ratio < 0.20:
