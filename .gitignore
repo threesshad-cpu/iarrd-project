@@ -24,7 +24,9 @@ yarn-error.log*
 
 # Models and Archives
 *.zip
-*_extracted/
 best_*.keras
 backend/venv/
-backend/__pycache__/
+__pycache__/
+**/__pycache__/
+*.h5
+*.keras
