@@ -1656,6 +1656,7 @@ body.light-mode .upload-status-bar {
 /*  IMAGE COMPARISON SLIDER                                   */
 /* ═══════════════════════════════════════════════════════════ */
 .img-cmp-root {
+  position: relative;
   width: 100%;
   user-select: none;
 }
@@ -1663,28 +1664,33 @@ body.light-mode .upload-status-bar {
 .img-cmp-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
   border-radius: var(--r-md);
   overflow: hidden;
   cursor: ew-resize;
   border: 1px solid rgba(255,255,255,0.08);
+  background: #05050f;
 }
 
 .img-cmp-base {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   pointer-events: none;
 }
 
 .img-cmp-clip {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  inset: 0;
   pointer-events: none;
-  transition: clip-path 0.01s linear;
+}
+
+.img-cmp-clip .img-cmp-base {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .img-cmp-line {
@@ -1904,53 +1910,7 @@ body.light-mode .upload-status-bar {
   padding-top: 3px;
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  IMAGE COMPARISON SLIDER ROOT                               */
-/* ═══════════════════════════════════════════════════════════ */
-.img-cmp-root { position: relative; width: 100%; }
 
-.img-cmp-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  user-select: none;
-  touch-action: none;
-  border-radius: 0;
-  background: #05050f;
-}
-
-.img-cmp-base {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  min-height: inherit;
-}
-
-.img-cmp-clip {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.img-cmp-clip .img-cmp-base {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.img-cmp-line {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 2.5px;
-  background: rgba(255,255,255,0.85);
-  transform: translateX(-50%);
-  z-index: 3;
-  pointer-events: none;
-  box-shadow: 0 0 12px rgba(255,255,255,0.4);
-}
 
 /* ═══════════════════════════════════════════════════════════ */
 /*  PIPELINE PAGE — responsive overrides                       */

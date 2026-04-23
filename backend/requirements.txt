@@ -1,15 +1,16 @@
-# ─── Web Framework ───────────────────────────────────────────────────────────
+# Web Framework
 fastapi==0.115.12
 uvicorn[standard]==0.34.0
 python-multipart==0.0.20
 
-# ─── ML / Deep Learning ──────────────────────────────────────────────────────
+# ML / Deep Learning
 keras==3.10.0
 tensorflow==2.19.0
 
-# ─── Image Processing ────────────────────────────────────────────────────────
+# Image Processing
 Pillow==11.2.1
 numpy==2.1.3
+opencv-python>=4.8.0
 
-# ─── Utilities ───────────────────────────────────────────────────────────────
+# Utilities
 python-dotenv==1.1.0

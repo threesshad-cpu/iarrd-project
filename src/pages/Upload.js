@@ -9,7 +9,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PageTransition, FadeUp } from '../components/Animations';
 import { setLastResult } from '../ResultsStore';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://threessha-iarrd-backend.hf.space';
+const API_BASE = (
+  process.env.REACT_APP_API_BASE ||
+  process.env.REACT_APP_API_URL ||
+  ''
+).replace(/\/$/, '');
 
 /* ═══════════════════════════════════════════════ */
 /*  BROWSER-SIDE PROCESSING (fallback)             */
@@ -363,7 +367,7 @@ export default function Upload() {
         segmentation:   resultPayload.segmentation
           ? { ...resultPayload.segmentation, overlay_b64: null } : null,
         reconstruction: resultPayload.reconstruction
-          ? { ...resultPayload.reconstruction, reconstruction_b64: null } : null,
+          ? { ...resultPayload.reconstruction, image_b64: null, gaussian_preview_b64: null } : null,
         labeled_output: resultPayload.labeled_output
           ? { ...resultPayload.labeled_output, labeled_image_b64: null } : null,
       };

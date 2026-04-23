@@ -78,12 +78,35 @@ function classify(obj) {
 
 /* ── Label colours ───────────────────────────────────────────── */
 const LABEL_COLORS = {
-  'Galaxy':            '#7c3aed',
-  'Star Cluster':      '#38bdf8',
-  'Nebula':            '#f59e0b',
-  'Quasar':            '#ef4444',
-  'Supernova Remnant': '#10b981',
-  'Unknown Object':    '#475569',
+  // Solar system objects
+  'Moon':               '#d4c5a9',
+  'Planet':             '#63caff',
+  'Comet':              '#b0ffda',
+  'Asteroid':           '#a08060',
+  // Stars
+  'Star':               '#ffffc0',
+  'Binary Star':        '#ffd890',
+  'Variable Star':      '#ffb060',
+  // Clusters
+  'Open Cluster':       '#38bdf8',
+  'Globular Cluster':   '#50c8f0',
+  'Star Cluster':       '#38bdf8',
+  // Galaxies
+  'Galaxy':             '#7c3aed',
+  'Barred Spiral Galaxy': '#9646ff',
+  // Nebulae
+  'Nebula':             '#f59e0b',
+  'Emission Nebula':    '#ff6450',
+  'Reflection Nebula':  '#64b4ff',
+  'Planetary Nebula':   '#50e6c8',
+  'Dark Nebula':        '#505064',
+  // Extreme objects
+  'Supernova Remnant':  '#10b981',
+  'Quasar':             '#ef4444',
+  'Black Hole Region':  '#7b2d8b',
+  'Gravitational Lens': '#c8a0ff',
+  // Fallback
+  'Unknown Object':     '#475569',
 };
 const getColor = (label) => LABEL_COLORS[label] ?? '#38bdf8';
 
@@ -117,10 +140,10 @@ const cardVariants = {
 function EnhancementPanel({ enhancement, originalImage }) {
   const { image_b64, meta, premium_chain: pc } = enhancement;
   const [zoom, setZoom] = useState(false);
-  const [zoomSrc, setZoomSrc] = useState(null);
-  // detect JPEG vs PNG from backend
-  const mimeType = image_b64?.startsWith('/9j/') ? 'image/jpeg' : 'image/jpeg';
-  const src = `data:${mimeType};base64,${image_b64}`;
+  // Always use image_b64 (full 8K JPEG from backend) for main display.
+  // premium_chain.enhanced_b64 is only a 512px preview thumbnail — DO NOT use for main image.
+  const dispB64  = image_b64;
+  const src = dispB64 ? `data:image/jpeg;base64,${dispB64}` : '';
 
 
   const download = () => {
@@ -131,9 +154,14 @@ function EnhancementPanel({ enhancement, originalImage }) {
   };
 
   /* Quality badges — human-readable labels only */
+  const noiseVal = pc?.noise_reduction_pct;
+  const noiseDisplay = noiseVal == null ? '—'
+    : noiseVal > 0 ? `${noiseVal}%`
+    : pc?.ssim != null && pc.ssim > 0.85 ? 'Already clean'
+    : '< 1%';
   const qualityBadges = pc ? [
     { label: 'Clarity Score',    value: pc.psnr != null ? `${pc.psnr} dB` : '—',          color: '#10b981', desc: 'Higher = cleaner image' },
-    { label: 'Noise Reduced',    value: pc.noise_reduction_pct != null ? `${pc.noise_reduction_pct}%` : '—', color: '#a78bfa', desc: 'Sensor noise removed' },
+    { label: 'Noise Floor',      value: noiseDisplay, color: '#a78bfa', desc: noiseVal === 0 ? 'Low noise input image' : 'Sensor noise removed' },
     { label: 'Contrast Boost',   value: pc.contrast_boost_pct != null ? `${pc.contrast_boost_pct > 0 ? '+' : ''}${pc.contrast_boost_pct}%` : '—', color: '#f59e0b', desc: 'Dynamic range improved' },
   ] : [];
 
@@ -204,7 +232,6 @@ function EnhancementPanel({ enhancement, originalImage }) {
       )}
 
       {/* Zoom Modal */}
-      {zoomSrc && <ZoomModal src={zoomSrc} label={zoomLabel} onClose={() => setZoomSrc(null)} />}
       {zoom && <ZoomModal src={src} label="Enhanced Image — Full Resolution" onClose={() => setZoom(false)} />}
     </motion.div>
   );
@@ -293,7 +320,7 @@ function ClassificationPanel({ classification, minConf = 0 }) {
 /* ═══════════════════════════════════════════════════════════════ */
 /*  IMAGE QUALITY PANEL  (was "Autoencoder")                       */
 /* ═══════════════════════════════════════════════════════════════ */
-function AnomalyPanel({ reconstruction, originalImage }) {
+function AnomalyPanel({ reconstruction, originalImage, enhancement }) {
   const {
     anomaly_score, quality, image_b64,
     gaussian_preview_b64,
@@ -310,7 +337,11 @@ function AnomalyPanel({ reconstruction, originalImage }) {
                       quality === 'Elevated' ? 'Moderate noise detected' :
                       'High noise / image anomaly';
 
-  const reconSrc    = image_b64            ? `data:image/png;base64,${image_b64}` : null;
+  // Always use enhancement.image_b64 (full 8K JPEG) for before/after comparison.
+  // premium_chain.enhanced_b64 is only a 512px thumbnail — using it makes the slider look bad.
+  const tdrB64   = enhancement?.image_b64 || enhancement?.premium_chain?.enhanced_b64;
+  const reconMime = 'image/jpeg';
+  const reconSrc    = tdrB64 ? `data:${reconMime};base64,${tdrB64}` : (image_b64 ? `data:image/png;base64,${image_b64}` : null);
   const gaussianSrc = gaussian_preview_b64 ? `data:image/png;base64,${gaussian_preview_b64}` : null;
 
   return (
@@ -438,12 +469,16 @@ function SegmentationPanel({ segmentation, originalImage }) {
   );
 
   const SEG_COLORS = {
-    'Galaxy':             '#7c3aed',
-    'Star Cluster':       '#38bdf8',
-    'Nebula':             '#f59e0b',
-    'Quasar':             '#ef4444',
-    'Supernova Remnant':  '#10b981',
-    'Unknown Object':     '#475569',
+    'Background':           '#1e293b',
+    'Star / Star Cluster':  '#38bdf8',
+    'Galaxy':               '#7c3aed',
+    'Nebula':               '#f59e0b',
+    'Anomaly / Quasar':     '#ef4444',
+    'Supernova Remnant':    '#10b981',
+    // Legacy names (backward compat if backend is old)
+    'Star Cluster':         '#38bdf8',
+    'Quasar':               '#ef4444',
+    'Unknown Object':       '#475569',
   };
 
   const allClasses = Object.keys(SEG_COLORS);
@@ -1064,7 +1099,7 @@ export default function Results() {
                     <ClassificationPanel classification={result.classification} minConf={result.minConf ?? 0} />
                   )}
                   {result.reconstruction && (
-                    <AnomalyPanel reconstruction={result.reconstruction} originalImage={result.image} />
+                    <AnomalyPanel reconstruction={result.reconstruction} originalImage={result.image} enhancement={result.enhancement} />
                   )}
                   {result.features && (
                     <FeaturesPanel features={result.features} />
