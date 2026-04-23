@@ -38,9 +38,9 @@ from fastapi.responses import JSONResponse
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 BASE_DIR        = Path(__file__).parent
-CNN_MODEL_DIR   = BASE_DIR / "backend_extracted"
-AUTOENCODER_DIR = BASE_DIR / "autoencoder_extracted"
-UNET_DIR        = BASE_DIR / "unet_extracted"
+CNN_MODEL_DIR   = BASE_DIR / "cnn_model.keras"
+AUTOENCODER_DIR = BASE_DIR / "autoencoder_model.keras"
+UNET_DIR        = BASE_DIR / "unet_model.keras"
 
 # ─── Model loading flag (avoids 503 on /health before models load) ───────────
 _models_ready = False
