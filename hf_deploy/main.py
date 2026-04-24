@@ -151,15 +151,21 @@ def _to_b64_png(arr: np.ndarray) -> str:
 
 
 def _clahe_stretch(arr: np.ndarray, lo: float = 1.0, hi: float = 99.0) -> np.ndarray:
-    """Per-channel percentile clip-and-stretch. I/O: float32 in [0, 255]."""
-    out = arr.copy()
-    for ch in range(arr.shape[2]):
-        plane  = arr[:, :, ch]
-        p_lo   = np.percentile(plane, lo)
-        p_hi   = np.percentile(plane, hi)
-        span   = max(p_hi - p_lo, 1e-6)
-        out[:, :, ch] = np.clip((plane - p_lo) / span, 0.0, 1.0) * 255.0
-    return out
+    """Luminance percentile clip-and-stretch to avoid color shifting. I/O: float32 in [0, 255]."""
+    import cv2
+    arr_u8 = np.clip(arr, 0, 255).astype(np.uint8)
+    hsv = cv2.cvtColor(arr_u8, cv2.COLOR_RGB2HSV)
+    v = hsv[:, :, 2].astype(np.float32)
+    
+    p_lo = np.percentile(v, lo)
+    p_hi = np.percentile(v, hi)
+    span = max(p_hi - p_lo, 5.0)  # Avoid blowing up tiny noise
+    
+    v_stretched = np.clip((v - p_lo) / span, 0.0, 1.0) * 255.0
+    hsv[:, :, 2] = v_stretched.astype(np.uint8)
+    
+    out_u8 = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    return out_u8.astype(np.float32)
 
 
 def _pil_thumbnail(img: Image.Image, max_dim: int) -> Image.Image:
@@ -187,7 +193,7 @@ def _compute_gaussian_preview(raw_bytes: bytes, sigma: float = 1.5) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _apply_clahe_pil(img: Image.Image, clip_limit: float = 3.0, tile_size: int = 32) -> Image.Image:
-    arr = np.asarray(img, dtype=np.float32) / 255.0
+    arr = np.asarray(img, dtype=np.float32)
     out = _clahe_stretch(arr, lo=1.0, hi=99.0)
     return Image.fromarray(out.astype(np.uint8))
 
@@ -286,7 +292,7 @@ def _enh_adaptive_clahe(arr: np.ndarray,
                          clip_lo: float = 0.5,
                          clip_hi: float = 99.5,
                          tile_size: int = 16) -> np.ndarray:
-    return _clahe_stretch(arr, lo=clip_lo, hi=clip_hi) / 255.0
+    return _clahe_stretch(arr * 255.0, lo=clip_lo, hi=clip_hi) / 255.0
 
 
 def _enh_wavelet_sharpen(arr: np.ndarray,
