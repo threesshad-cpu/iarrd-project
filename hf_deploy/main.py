@@ -984,7 +984,7 @@ def _heuristic_classify(arr: np.ndarray) -> dict:
 #  STAGE 05 — AI MODEL PROCESSING  (CNN + heuristic fallback)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def stage_05_cnn(arr: np.ndarray) -> dict:
+def stage_05_cnn(arr: np.ndarray, orig_arr: np.ndarray = None) -> dict:
     """
     Run the fine-tuned CNN classifier.
     If the CNN returns a near-uniform distribution (std < 0.02, i.e. all
@@ -1000,8 +1000,8 @@ def stage_05_cnn(arr: np.ndarray) -> dict:
 
     # Degenerate detection: std < 0.02 ⇒ all probs ≈ 0.167, fall back to heuristic
     if prob_std < 0.02:
-        print(f"[05] CNN degenerate (σ={prob_std:.4f}  top={top_conf:.3f}) — heuristic fallback")
-        result = _heuristic_classify(arr)
+        print(f"[05] CNN degenerate (std={prob_std:.4f}  top={top_conf:.3f}) - heuristic fallback")
+        result = _heuristic_classify(orig_arr if orig_arr is not None else arr)
         result["cnn_raw_probs"] = {
             CNN_LABELS[i]: round(float(p) * 100, 2) for i, p in enumerate(probs)
         }
@@ -1602,7 +1602,7 @@ async def analyze(file: UploadFile = File(...)):
         "labeled_output":  lbl,
         "features":        feat,
         "acquisition":     {k: v for k, v in acq.items() if not k.startswith("_") and k not in ("pil_image","raw_bytes")},
-        "preprocessing":   {k: v for k, v in pre.items() if not k.startswith("_") and k != "arr"},
+        "preprocessing":   {k: v for k, v in pre.items() if not k.startswith("_") and k not in ("arr", "orig_arr")},
         "pipeline":        pipeline_report,
         # Second opinion (only present when CNN conf < 85%)
         "second_opinion":  second_opinion,
