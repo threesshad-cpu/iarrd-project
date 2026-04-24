@@ -128,12 +128,13 @@ app.add_middleware(
 
 
 @app.get("/health", tags=["Meta"])
-async def health():
-    """Liveness probe — returns model readiness status."""
+async def health_root():
+    """Root liveness probe (alias of /api/health) — returns model readiness status."""
     return {
-        "status": "ready" if _models_ready else "loading",
+        "status":        "ready" if _models_ready else "loading",
         "models_loaded": list(models.keys()),
-        "version": "5.0.0",
+        "version":       "5.0.0",
+        "pipeline":      "8-stage",
     }
 
 
@@ -560,7 +561,7 @@ def stage_03_enhancement(raw_bytes: bytes, native_w: int, native_h: int) -> dict
     # Pass 4 — Robust TDR Denoising
     # Using local adaptive variance filtering (Wiener-style)
     arr_d = np.asarray(img, dtype=np.float32) / 255.0
-    arr_d = _enh_tdr_denoise(arr_d, strength=0.55)
+    arr_d = _enh_tdr_denoise(arr_d, noise_threshold=0.05)
     img   = Image.fromarray((arr_d * 255.0).astype(np.uint8))
     passes_applied.append("TDR Adaptive Denoising (Local Variance Filter)")
 
