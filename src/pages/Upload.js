@@ -12,7 +12,7 @@ import { setLastResult } from '../ResultsStore';
 const API_BASE = (
   process.env.REACT_APP_API_BASE ||
   process.env.REACT_APP_API_URL ||
-  ''
+  'https://threessha-iarrd-backend.hf.space'
 ).replace(/\/$/, '');
 
 /* ═══════════════════════════════════════════════ */
