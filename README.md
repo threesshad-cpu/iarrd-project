@@ -1,4 +1,4 @@
-# Astronomical UI — Enhanced Prototype
+# Astronomical UI — Enhanced Prototype 
 
 This repository is a small React prototype demonstrating a client-side pipeline for astronomical image preprocessing, enhancement, simple object detection and lightweight feature storage. It's intended as a UI/UX front end for the following problem statement:
 
